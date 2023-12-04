@@ -22,15 +22,14 @@ class Client:
     def __init__(self, ip, host):
         self.ip = ip
         self.host = host
-        self.speaker = 0 # speaker turn
-        self.text_queue = queue.Queue() # Global queue to hold the text to be read
-        self.queue_lock = threading.Lock() # Lock for synchronizing access to the text queue
+        self.speaker = 0  # speaker turn
+        self.text_queue = queue.Queue()  # Global queue to hold the text to be read
+        self.queue_lock = threading.Lock()  # Lock for synchronizing access to the text queue
 
         print('Build STT')
         self.connection()
         print('Build STT')
         self.cheetah = self.build_cheetah()
-
 
     def connection(self):
         print("Waiting for a connection...")
@@ -82,7 +81,6 @@ class Client:
         print('Cheetah version : %s' % CHEETAH.version)
         return CHEETAH
 
-
     def sender(self):
         recorder = PvRecorder(frame_length=self.cheetah.frame_length, device_index=ARGS.audio_device_index)
         recorder.start()
@@ -108,7 +106,6 @@ class Client:
             if not data:
                 continue
             self.text_queue.put(data)
-
 
     def engine(text):
         mp3_fp = BytesIO()

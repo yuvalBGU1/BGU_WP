@@ -19,7 +19,7 @@ import json
 
 
 def main():
-    ip = '192.168.1.107'
+    ip = '132.72.80.203'
     host = 7777
     client1 = Client(ip, host)
     time.sleep(5)
