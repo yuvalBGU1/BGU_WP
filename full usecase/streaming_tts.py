@@ -5,8 +5,10 @@ import time
 from RealtimeTTS import TextToAudioStream, SystemEngine, AzureEngine, ElevenlabsEngine
 
 global stream
-engine = SystemEngine() # replace with your TTS engine
+engine = SystemEngine()  # replace with your TTS engine
 stream = TextToAudioStream(engine)
+
+
 # stream.feed("Hello world! How are you today?")
 # stream.play_async()
 
@@ -38,8 +40,7 @@ stream = TextToAudioStream(engine)
 def read_text_from_queue():
     global stream
     while True:
-        stream.play(buffer_threshold_seconds=5)
-
+        stream.play()
 
 
 def push_text_from_client_to_queue():
