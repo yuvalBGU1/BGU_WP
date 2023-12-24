@@ -53,7 +53,7 @@ def push_text_from_client_to_queue():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Bind the socket to a specific address and port
-    server_address = ('127.0.0.1', 7777)
+    server_address = ('132.72.80.131', 12345)
     server_socket.bind(server_address)
 
     # Listen for incoming connections

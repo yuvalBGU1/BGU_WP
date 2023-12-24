@@ -3,6 +3,13 @@ import json
 from vosk import Model, KaldiRecognizer
 import pyaudio
 
+# Create a socket object
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Connect to the server's IP address and port
+server_address = ('127.0.0.1', 7778)
+client_socket.connect(server_address)
+
 
 # Initialize PyAudio
 p = pyaudio.PyAudio()
@@ -44,11 +51,23 @@ while True:
         result_dict = json.loads(result)
         if 'text' in result_dict and result_dict['text']:
             print("text: " + result_dict['text'])
+            for part in result_dict['text'].split(" "):
+                # input()
+                buffer = part.encode()
+                buffer_len = len(buffer)
+                client_socket.send(buffer_len.to_bytes(2, 'big'))
+                client_socket.send(buffer)
     else:
         result = recognizer.PartialResult()
         result_dict = json.loads(result)
         if 'partial' in result_dict and result_dict['partial']:
             print("partial: " + result_dict['partial'])
+            for part in result_dict['partial'].split(" "):
+                # input()
+                buffer = part.encode()
+                buffer_len = len(buffer)
+                client_socket.send(buffer_len.to_bytes(2, 'big'))
+                client_socket.send(buffer)
             recognizer.Reset()
             # print(result_dict)
 

@@ -40,6 +40,12 @@ while True:
         result_dict = json.loads(result)
         if 'text' in result_dict and result_dict['text']:
             print("text: " + result_dict['text'])
+            for part in result_dict['text'].split(" "):
+                # input()
+                buffer = part.encode()
+                buffer_len = len(buffer)
+                client_socket.send(buffer_len.to_bytes(2, 'big'))
+                client_socket.send(buffer)
     else:
         result = recognizer.PartialResult()
         result_dict = json.loads(result)
