@@ -49,7 +49,7 @@ class Reciver:
 
 
 def main():
-    rec = Reciver(ip="132.72.80.206", host=5555)
+    rec = Reciver(ip="127.0.0.1", host=5555)
     # Start the input thread
     input_thread = threading.Thread(target=rec.get_text)
     input_thread.start()

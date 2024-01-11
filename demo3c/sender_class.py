@@ -171,7 +171,7 @@ def main():
 
     sen = Sender(access_key=args.access_key, library_path=args.library_path, model_path=args.model_path,
                  endpoint_duration_sec=args.endpoint_duration_sec,
-                 disable_automatic_punctuation=args.disable_automatic_punctuation, ip="192.168.1.116",
+                 disable_automatic_punctuation=args.disable_automatic_punctuation, ip="127.0.0.1",
                  host=5555, model_index=args.stt_model)
     time.sleep(3)
 
