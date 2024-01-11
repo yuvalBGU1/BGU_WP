@@ -7,8 +7,9 @@ from vosk import Model, KaldiRecognizer
 import pyaudio
 import time
 
+
 class Sender:
-    def __init__(self, ip = 'satts', host = 0, speakers = ['LJ001'], mode = 'mic'):
+    def __init__(self, ip='satts', host=0, speakers=['LJ001'], mode='mic'):
         self.ip = ip
         self.host = host
         self.speaker_ls = speakers
@@ -23,7 +24,6 @@ class Sender:
         # else:
         #     pass
 
-
     def get_paths(self):
         for s in self.speaker_ls:
             self.data[s] = {}
@@ -36,7 +36,6 @@ class Sender:
                     self.wavs[s].append(speaker_path + '\\' + file)
                 elif file.endswith('.csv'):
                     self.csv[s].append(speaker_path + '\\' + file)
-
 
     def send(self):
         for s in self.speaker_ls:
@@ -57,18 +56,13 @@ class Sender:
     def send_dict(self):
         pass
 
-
         pass
 
 
-
-
-
-
-
 def main():
-    sen = Sender(ip = "169.254.208.240", host= 5555)
+    sen = Sender(ip="169.254.208.240", host=5555)
     sen.get_paths()
+
 
 if __name__ == '__main__':
     main()

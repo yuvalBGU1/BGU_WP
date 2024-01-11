@@ -11,8 +11,10 @@ import time
 import pydub
 
 from RealtimeTTS import TextToAudioStream, SystemEngine, AzureEngine, ElevenlabsEngine
+
+
 class Reciver:
-    def __init__(self, ip = '0', host = 0):
+    def __init__(self, ip='0', host=0):
         self.ip = ip
         self.host = host
         self.connect()
@@ -26,7 +28,6 @@ class Reciver:
         while True:
             self.stream.play()
 
-
     def get_text(self):
         print('starting!!!!!!')
         while True:
@@ -39,12 +40,6 @@ class Reciver:
                 self.stream.feed(data)
                 print("feed: " + data)
 
-
-
-
-
-
-
     def connect(self):
 
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -53,10 +48,8 @@ class Reciver:
         self.client_socket.send("rec".encode())
 
 
-
-
 def main():
-    rec = Reciver(ip = "192.168.1.116", host=5555)
+    rec = Reciver(ip="132.72.80.206", host=5555)
     # Start the input thread
     input_thread = threading.Thread(target=rec.get_text)
     input_thread.start()
@@ -72,4 +65,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
