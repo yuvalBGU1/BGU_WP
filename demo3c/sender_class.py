@@ -13,7 +13,7 @@ from pvrecorder import PvRecorder
 
 class Sender:
     def __init__(self, access_key, library_path, model_path, endpoint_duration_sec, disable_automatic_punctuation,
-                 ip='satts', host=0, speakers=['001'], mode='mic', model_index=0):
+                 ip='satts', host=0, speakers=['001'], mode='mic', model_index=0, usecase=0):
         self.client_socket = None
         self.p = None
         self.disable_automatic_punctuation = disable_automatic_punctuation
@@ -63,23 +63,36 @@ class Sender:
             print('Listening... (press Ctrl+C to stop)')
 
             try:
-                while True:
-                    partial_transcript, is_endpoint = cheetah.process(recorder.read())
-                    if partial_transcript != '':
-                        # print(partial_transcript, end='', flush=True)
-                        self.client_socket.send(partial_transcript.encode())
-                        # time_array.append(["send", time.time()])
-                        print(partial_transcript)
-                    else:  # keeping open flow
-                        self.client_socket.send(" ".encode())
+                if self.usecase == 0:
+                    while True:
+                        partial_transcript, is_endpoint = cheetah.process(recorder.read())
+                        if partial_transcript != '':
+                            buffer = partial_transcript.encode()
+                            buffer_len = len(buffer)
+                            self.client_socket.send(buffer_len.to_bytes(2, 'big'))
+                            self.client_socket.send(buffer)
+                            print(partial_transcript)
+                        else:  # keeping open flow
+                            self.client_socket.send(len(" ".encode()).to_bytes(2, 'big'))
+                            self.client_socket.send(" ".encode())
 
+                        if is_endpoint:
+                            text_to_socket = cheetah.flush()
+                            buffer = text_to_socket.encode()
+                            buffer_len = len(buffer)
+                            self.client_socket.send(buffer_len.to_bytes(2, 'big'))
+                            self.client_socket.send(buffer)
+                            print(text_to_socket)
+
+                else:
+                    partial_transcript, is_endpoint = cheetah.process(recorder.read())
                     if is_endpoint:
                         text_to_socket = cheetah.flush()
-                        # print(text_to_socket + "\n")
-                        self.client_socket.send(text_to_socket.encode())
-                        # time_array.append(["send", time.time()])
+                        buffer = text_to_socket.encode()
+                        buffer_len = len(buffer)
+                        self.client_socket.send(buffer_len.to_bytes(2, 'big'))
+                        self.client_socket.send(buffer)
                         print(text_to_socket)
-                        # print(time_array)
 
             finally:
                 print()
@@ -101,32 +114,46 @@ class Sender:
         # Create a recognizer
         recognizer = KaldiRecognizer(self.model, 44100)
 
-        while True:
-            data = stream.read(1024, exception_on_overflow=False)
-            if recognizer.AcceptWaveform(data):  # returns true when detecting silence
-                result = recognizer.Result()
-                result_dict = json.loads(result)
-                if 'text' in result_dict and result_dict['text']:
-                    print("text: " + result_dict['text'])
-                    for part in result_dict['text'].split(" "):
-                        # input()
-                        buffer = part.encode()
+        if self.usecase == 0:  # check if streaming mode
+            while True:
+                data = stream.read(1024, exception_on_overflow=False)
+                if recognizer.AcceptWaveform(data):  # returns true when detecting silence
+                    result = recognizer.Result()
+                    result_dict = json.loads(result)
+                    if 'text' in result_dict and result_dict['text']:
+                        print("text: " + result_dict['text'])
+                        for part in result_dict['text'].split(" "):
+                            # input()
+                            buffer = part.encode()
+                            buffer_len = len(buffer)
+                            self.client_socket.send(buffer_len.to_bytes(2, 'big'))
+                            self.client_socket.send(buffer)
+                else:
+                    result = recognizer.PartialResult()
+                    result_dict = json.loads(result)
+                    if 'partial' in result_dict and result_dict['partial']:
+                        print("partial: " + result_dict['partial'])
+                        for part in result_dict['partial'].split(" "):
+                            # input()
+                            buffer = part.encode()
+                            buffer_len = len(buffer)
+                            self.client_socket.send(buffer_len.to_bytes(2, 'big'))
+                            self.client_socket.send(buffer)
+                        recognizer.Reset()
+                        # print(result_dict)
+        else:
+            while True:
+                data = stream.read(1024, exception_on_overflow=False)
+                if recognizer.AcceptWaveform(data):  # returns true when detecting silence
+                    result = recognizer.Result()
+                    result_dict = json.loads(result)
+                    if 'text' in result_dict and result_dict['text']:
+                        text = result_dict['text']
+                        print("text: " + text)
+                        buffer = text.encode()
                         buffer_len = len(buffer)
                         self.client_socket.send(buffer_len.to_bytes(2, 'big'))
                         self.client_socket.send(buffer)
-            else:
-                result = recognizer.PartialResult()
-                result_dict = json.loads(result)
-                if 'partial' in result_dict and result_dict['partial']:
-                    print("partial: " + result_dict['partial'])
-                    for part in result_dict['partial'].split(" "):
-                        # input()
-                        buffer = part.encode()
-                        buffer_len = len(buffer)
-                        self.client_socket.send(buffer_len.to_bytes(2, 'big'))
-                        self.client_socket.send(buffer)
-                    recognizer.Reset()
-                    # print(result_dict)
 
         # Stop and close the stream
         stream.stop_stream()
@@ -163,6 +190,8 @@ def main():
     # Program arguments:
     parser.add_argument('--stt_model', type=int, default=0,
                         help='0 - small vosk\n 1 - large vosk\n 2 - cheetah model')
+    parser.add_argument('--usecase', default=0,
+                        help='0 - full usecase streaming\n1 - simple usecase realtime')
     args = parser.parse_args()
 
     if args.show_audio_devices:
@@ -172,7 +201,7 @@ def main():
     sen = Sender(access_key=args.access_key, library_path=args.library_path, model_path=args.model_path,
                  endpoint_duration_sec=args.endpoint_duration_sec,
                  disable_automatic_punctuation=args.disable_automatic_punctuation, ip="127.0.0.1",
-                 host=5555, model_index=args.stt_model)
+                 host=5555, model_index=args.stt_model, usecase=args.usecase)
     time.sleep(3)
 
     if args.stt_model == 2:
